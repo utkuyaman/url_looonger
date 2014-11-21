@@ -1,30 +1,39 @@
-
-links = [
-	"http://bit.ly/url_loonger",
-]
-
-import urllib
+import os
+import sys
 import urllib2
-import datetime
+import re
 
-print str(datetime.datetime.now())
-for link in links:
-	try:
-		resp = urllib.urlopen(link)
-		if resp.getcode() is 200:
-			print resp.url
-	except:
-		print 'error: ', link
 
-print str(datetime.datetime.now())
-
-for link in links:
+def longen(link):
 	try:
 		request = urllib2.Request(link)
 		request.get_method = lambda : 'HEAD'
 		response = urllib2.urlopen(request)
-		print response.geturl()
+		print(response.geturl())
 	except:
-		print 'error: ', link
+		print('error: ', link)
 
-print str(datetime.datetime.now())
+# check if link is supplied by stdin
+if os.fstat(sys.stdin.fileno()).st_size > 0:
+	for line in sys.stdin:
+		longen(line)
+elif len(sys.argv) > 1:
+	links = []
+
+	val = sys.argv[1]
+
+	# check if the argument is a file
+	if os.path.isfile(val):
+		with open(val) as f:
+			links = f.readlines()
+	else:
+		links = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', val)
+
+	if len(links) == 0:
+		print('error: where are the links?')
+	else:
+		# parse links
+		for link in links:
+			longen(link)
+else:
+	print('error: where are the links?')
